@@ -1,0 +1,9 @@
+#################
+## Delphi
+#################
+
+*.dcu
+__history/
+*.~*~
+*.local
+*.identcache
