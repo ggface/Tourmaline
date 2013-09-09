@@ -4,7 +4,7 @@ object ED_User: TED_User
   BorderIcons = [biSystemMenu, biMinimize]
   BorderStyle = bsSingle
   Caption = 'User editor'
-  ClientHeight = 265
+  ClientHeight = 212
   ClientWidth = 465
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
@@ -16,12 +16,14 @@ object ED_User: TED_User
   Position = poDesktopCenter
   Scaled = False
   OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object cxLabel5: TcxLabel
     Left = 16
     Top = 8
-    Caption = 'Username'
+    Caption = 'Display name'
     ParentFont = False
     Style.Font.Charset = RUSSIAN_CHARSET
     Style.Font.Color = clWindowText
@@ -30,53 +32,10 @@ object ED_User: TED_User
     Style.Font.Style = [fsBold]
     Style.IsFontAssigned = True
     Transparent = True
-  end
-  object cxDBTextEdit1: TcxDBTextEdit
-    Left = 16
-    Top = 32
-    DataBinding.DataField = 'USERNAME'
-    DataBinding.DataSource = Bases.dsUSERS
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    TabOrder = 0
-    Width = 210
-  end
-  object cxLabel1: TcxLabel
-    Left = 16
-    Top = 64
-    Caption = 'Firstname'
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    Transparent = True
-  end
-  object cxDBTextEdit2: TcxDBTextEdit
-    Left = 16
-    Top = 88
-    DataBinding.DataField = 'FIRSTNAME'
-    DataBinding.DataSource = Bases.dsUSERS
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    TabOrder = 2
-    Width = 210
   end
   object cxLabel2: TcxLabel
     Left = 16
-    Top = 120
+    Top = 69
     Caption = 'Description'
     ParentFont = False
     Style.Font.Charset = RUSSIAN_CHARSET
@@ -86,21 +45,6 @@ object ED_User: TED_User
     Style.Font.Style = [fsBold]
     Style.IsFontAssigned = True
     Transparent = True
-  end
-  object cxDBTextEdit3: TcxDBTextEdit
-    Left = 16
-    Top = 144
-    DataBinding.DataField = 'DESCRIPTION'
-    DataBinding.DataSource = Bases.dsUSERS
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    TabOrder = 4
-    Width = 433
   end
   object cxLabel7: TcxLabel
     Left = 240
@@ -115,40 +59,15 @@ object ED_User: TED_User
     Style.IsFontAssigned = True
     Transparent = True
   end
-  object cxDBTextEdit4: TcxDBTextEdit
-    Left = 240
-    Top = 32
-    DataBinding.DataField = 'ADRESSIP'
-    DataBinding.DataSource = Bases.dsUSERS
+  object chEnabled: TcxCheckBox
+    Left = 16
+    Top = 135
+    Caption = 'Active account (required to access the Tourmaline)'
     ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    TabOrder = 1
-    Width = 209
-  end
-  object cxLabel8: TcxLabel
-    Left = 240
-    Top = 64
-    Caption = 'Lastname'
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    Transparent = True
-  end
-  object cxDBTextEdit5: TcxDBTextEdit
-    Left = 240
-    Top = 88
-    DataBinding.DataField = 'LASTNAME'
-    DataBinding.DataSource = Bases.dsUSERS
-    ParentFont = False
+    Properties.NullStyle = nssUnchecked
+    Properties.ValueChecked = '1'
+    Properties.ValueUnchecked = '0'
+    State = cbsGrayed
     Style.Font.Charset = RUSSIAN_CHARSET
     Style.Font.Color = clWindowText
     Style.Font.Height = -19
@@ -156,26 +75,12 @@ object ED_User: TED_User
     Style.Font.Style = [fsBold]
     Style.IsFontAssigned = True
     TabOrder = 3
-    Width = 209
-  end
-  object cxCheckBox1: TcxCheckBox
-    Left = 16
-    Top = 186
-    Caption = 'Active account (required to access the Tourmaline)'
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    TabOrder = 10
     Transparent = True
     Width = 433
   end
-  object Button1: TButton
-    Left = 96
-    Top = 219
+  object btnCancel: TButton
+    Left = 280
+    Top = 170
     Width = 169
     Height = 29
     Caption = 'Cancel'
@@ -185,12 +90,12 @@ object ED_User: TED_User
     Font.Name = 'Calibri'
     Font.Style = [fsBold]
     ParentFont = False
-    TabOrder = 11
-    OnClick = Button1Click
+    TabOrder = 4
+    OnClick = btnCancelClick
   end
-  object Button2: TButton
-    Left = 280
-    Top = 219
+  object btnSave: TButton
+    Left = 100
+    Top = 170
     Width = 169
     Height = 29
     Caption = 'Save'
@@ -200,7 +105,46 @@ object ED_User: TED_User
     Font.Name = 'Calibri'
     Font.Style = [fsBold]
     ParentFont = False
-    TabOrder = 12
-    OnClick = Button2Click
+    TabOrder = 5
+    OnClick = btnSaveClick
+  end
+  object teDisplayName: TcxTextEdit
+    Left = 16
+    Top = 32
+    ParentFont = False
+    Style.Font.Charset = RUSSIAN_CHARSET
+    Style.Font.Color = clWindowText
+    Style.Font.Height = -19
+    Style.Font.Name = 'Calibri'
+    Style.Font.Style = [fsBold]
+    Style.IsFontAssigned = True
+    TabOrder = 6
+    Width = 210
+  end
+  object teIP: TcxTextEdit
+    Left = 240
+    Top = 32
+    ParentFont = False
+    Style.Font.Charset = RUSSIAN_CHARSET
+    Style.Font.Color = clWindowText
+    Style.Font.Height = -19
+    Style.Font.Name = 'Calibri'
+    Style.Font.Style = [fsBold]
+    Style.IsFontAssigned = True
+    TabOrder = 7
+    Width = 209
+  end
+  object teDescription: TcxTextEdit
+    Left = 16
+    Top = 93
+    ParentFont = False
+    Style.Font.Charset = RUSSIAN_CHARSET
+    Style.Font.Color = clWindowText
+    Style.Font.Height = -19
+    Style.Font.Name = 'Calibri'
+    Style.Font.Style = [fsBold]
+    Style.IsFontAssigned = True
+    TabOrder = 8
+    Width = 433
   end
 end

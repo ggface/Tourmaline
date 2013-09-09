@@ -4,7 +4,7 @@ interface
 
 uses
   SysUtils, Classes, DB, ADODB, glConnect, DBXDataSnap, DBXCommon, DBClient,
-  DSConnect, SqlExpr, Dialogs, glTools;
+  DSConnect, SqlExpr, Dialogs, glTools, IndyPeerImpl;
 
 type
   TBases = class(TDataModule)

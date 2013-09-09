@@ -1,7 +1,6 @@
 object MainForm: TMainForm
   Left = 0
   Top = 0
-  Caption = 'Tourmaline v0.3 RC'
   ClientHeight = 516
   ClientWidth = 766
   Color = clBtnFace
@@ -15,6 +14,7 @@ object MainForm: TMainForm
   Scaled = False
   OnCloseQuery = FormCloseQuery
   OnCreate = FormCreate
+  OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
   object dxStatusBar1: TdxStatusBar
@@ -47,9 +47,9 @@ object MainForm: TMainForm
   end
   object cxGrid1: TcxGrid
     Left = 0
-    Top = 28
+    Top = 26
     Width = 766
-    Height = 468
+    Height = 470
     Align = alClient
     TabOrder = 2
     object cxGrid1Level1: TcxGridLevel
@@ -57,12 +57,11 @@ object MainForm: TMainForm
     end
   end
   object GVR: TcxGridViewRepository
-    Left = 280
+    Left = 282
     Top = 120
     object GV_Users: TcxGridDBTableView
-      NavigatorButtons.ConfirmDelete = False
       OnCellDblClick = GV_UsersCellDblClick
-      DataController.DataSource = Bases.dsUSERS
+      DataController.DataSource = dsUsers
       DataController.Summary.DefaultGroupSummaryItems = <>
       DataController.Summary.FooterSummaryItems = <>
       DataController.Summary.SummaryGroups = <>
@@ -74,54 +73,39 @@ object MainForm: TMainForm
       OptionsView.ColumnAutoWidth = True
       OptionsView.GroupByBox = False
       OptionsView.Indicator = True
-      object GV_UsersColumn6: TcxGridDBColumn
-        Caption = 'Active'
-        DataBinding.FieldName = 'ACTIVE'
-        OnGetDisplayText = GV_UsersColumn6GetDisplayText
+      object gvcUsersStatus: TcxGridDBColumn
+        Caption = 'Status'
+        DataBinding.FieldName = 'ENABLED'
+        OnGetDisplayText = gvcUsersStatusGetDisplayText
         Options.Editing = False
         Options.Focusing = False
-        Width = 55
+        Width = 97
       end
-      object GV_UsersColumn1: TcxGridDBColumn
-        Caption = 'Username'
-        DataBinding.FieldName = 'USERNAME'
+      object gvcUsersDisplayName: TcxGridDBColumn
+        Caption = 'Display name'
+        DataBinding.FieldName = 'N_USER'
         Options.Editing = False
         Options.Focusing = False
-        Width = 116
+        Width = 200
       end
-      object GV_UsersColumn5: TcxGridDBColumn
+      object gvcUsersIP: TcxGridDBColumn
         Caption = 'IP'
-        DataBinding.FieldName = 'ADRESSIP'
+        DataBinding.FieldName = 'IP_ADRESS'
         Options.Editing = False
         Options.Focusing = False
-        Width = 108
+        Width = 143
       end
-      object GV_UsersColumn2: TcxGridDBColumn
-        Caption = 'Firstname'
-        DataBinding.FieldName = 'FIRSTNAME'
-        Options.Editing = False
-        Options.Focusing = False
-        Width = 121
-      end
-      object GV_UsersColumn3: TcxGridDBColumn
-        Caption = 'Lastname'
-        DataBinding.FieldName = 'LASTNAME'
-        Options.Editing = False
-        Options.Focusing = False
-        Width = 127
-      end
-      object GV_UsersColumn4: TcxGridDBColumn
+      object gvcUsersDescription: TcxGridDBColumn
         Caption = 'Description'
         DataBinding.FieldName = 'DESCRIPTION'
         Options.Editing = False
         Options.Focusing = False
-        Width = 145
+        Width = 232
       end
     end
     object GV_BlackList: TcxGridDBTableView
-      NavigatorButtons.ConfirmDelete = False
       OnCellDblClick = GV_BlackListCellDblClick
-      DataController.DataSource = Bases.dsBLACKLIST
+      DataController.DataSource = dsBlackList
       DataController.Summary.DefaultGroupSummaryItems = <>
       DataController.Summary.FooterSummaryItems = <>
       DataController.Summary.SummaryGroups = <>
@@ -133,21 +117,21 @@ object MainForm: TMainForm
       OptionsView.ColumnAutoWidth = True
       OptionsView.GroupByBox = False
       OptionsView.Indicator = True
-      object GV_BlackListColumn1: TcxGridDBColumn
-        Caption = 'Active'
-        DataBinding.FieldName = 'ACTIVE'
-        OnGetDisplayText = GV_BlackListColumn1GetDisplayText
+      object gvcBlacklistStatus: TcxGridDBColumn
+        Caption = 'Status'
+        DataBinding.FieldName = 'ENABLED'
+        OnGetDisplayText = gvcBlacklistStatusGetDisplayText
         Options.Editing = False
         Options.Focusing = False
         Width = 66
       end
-      object GV_BlackListColumn2: TcxGridDBColumn
+      object gvcBlacklistURL: TcxGridDBColumn
         DataBinding.FieldName = 'URL'
         Options.Editing = False
         Options.Focusing = False
         Width = 417
       end
-      object GV_BlackListColumn3: TcxGridDBColumn
+      object gvcBlacklistDescription: TcxGridDBColumn
         Caption = 'Description'
         DataBinding.FieldName = 'DESCRIPTION'
         Options.Editing = False
@@ -156,9 +140,8 @@ object MainForm: TMainForm
       end
     end
     object GV_PortForwarding: TcxGridDBTableView
-      NavigatorButtons.ConfirmDelete = False
       OnCellDblClick = GV_PortForwardingCellDblClick
-      DataController.DataSource = Bases.dsPORTFORWARDING
+      DataController.DataSource = dsMaplist
       DataController.Summary.DefaultGroupSummaryItems = <>
       DataController.Summary.FooterSummaryItems = <>
       DataController.Summary.SummaryGroups = <>
@@ -171,8 +154,8 @@ object MainForm: TMainForm
       OptionsView.GroupByBox = False
       OptionsView.Indicator = True
       object GV_PortForwardingColumn1: TcxGridDBColumn
-        Caption = 'Active'
-        DataBinding.FieldName = 'ACTIVE'
+        Caption = 'Status'
+        DataBinding.FieldName = 'ENABLED'
         OnGetDisplayText = GV_PortForwardingColumn1GetDisplayText
         Options.Editing = False
         Options.Focusing = False
@@ -180,14 +163,14 @@ object MainForm: TMainForm
       end
       object GV_PortForwardingColumn2: TcxGridDBColumn
         Caption = 'Local port'
-        DataBinding.FieldName = 'LOCALPORT'
+        DataBinding.FieldName = 'LOCAL_PORT'
         Options.Editing = False
         Options.Focusing = False
         Width = 145
       end
       object GV_PortForwardingColumn3: TcxGridDBColumn
         Caption = 'Remote port'
-        DataBinding.FieldName = 'REMOTEPORT'
+        DataBinding.FieldName = 'REMOTE_PORT'
         Options.Editing = False
         Options.Focusing = False
         Width = 144
@@ -229,7 +212,7 @@ object MainForm: TMainForm
     DockControlHeights = (
       0
       0
-      28
+      26
       0)
     object dxBarManager1Bar1: TdxBar
       AllowQuickCustomizing = False
@@ -845,5 +828,22 @@ object MainForm: TMainForm
   object glTools1: TglTools
     Left = 400
     Top = 120
+  end
+  object OpenDialog1: TOpenDialog
+    DefaultExt = '*.tdb'
+    Left = 502
+    Top = 72
+  end
+  object dsUsers: TDataSource
+    Left = 522
+    Top = 214
+  end
+  object dsMaplist: TDataSource
+    Left = 522
+    Top = 262
+  end
+  object dsBlackList: TDataSource
+    Left = 522
+    Top = 312
   end
 end

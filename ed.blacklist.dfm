@@ -16,6 +16,8 @@ object ED_Blacklist: TED_Blacklist
   Position = poDesktopCenter
   Scaled = False
   OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object cxLabel5: TcxLabel
@@ -31,21 +33,6 @@ object ED_Blacklist: TED_Blacklist
     Style.IsFontAssigned = True
     Transparent = True
   end
-  object cxDBTextEdit1: TcxDBTextEdit
-    Left = 16
-    Top = 32
-    DataBinding.DataField = 'URL'
-    DataBinding.DataSource = Bases.dsBLACKLIST
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    TabOrder = 0
-    Width = 353
-  end
   object cxLabel1: TcxLabel
     Left = 16
     Top = 64
@@ -59,39 +46,9 @@ object ED_Blacklist: TED_Blacklist
     Style.IsFontAssigned = True
     Transparent = True
   end
-  object cxDBTextEdit2: TcxDBTextEdit
-    Left = 16
-    Top = 88
-    DataBinding.DataField = 'DESCRIPTION'
-    DataBinding.DataSource = Bases.dsBLACKLIST
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    TabOrder = 1
-    Width = 353
-  end
-  object cxCheckBox1: TcxCheckBox
-    Left = 16
-    Top = 123
-    Caption = 'Active limit (for everyone users)'
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    TabOrder = 4
-    Transparent = True
-    Width = 353
-  end
-  object Button1: TButton
-    Left = 16
-    Top = 156
+  object btnCancel: TButton
+    Left = 200
+    Top = 160
     Width = 169
     Height = 29
     Caption = 'Cancel'
@@ -101,12 +58,12 @@ object ED_Blacklist: TED_Blacklist
     Font.Name = 'Calibri'
     Font.Style = [fsBold]
     ParentFont = False
-    TabOrder = 5
-    OnClick = Button1Click
+    TabOrder = 2
+    OnClick = btnCancelClick
   end
-  object Button2: TButton
-    Left = 200
-    Top = 156
+  object btnSave: TButton
+    Left = 16
+    Top = 160
     Width = 169
     Height = 29
     Caption = 'Save'
@@ -116,7 +73,52 @@ object ED_Blacklist: TED_Blacklist
     Font.Name = 'Calibri'
     Font.Style = [fsBold]
     ParentFont = False
+    TabOrder = 3
+    OnClick = btnSaveClick
+  end
+  object teURL: TcxTextEdit
+    Left = 16
+    Top = 32
+    ParentFont = False
+    Style.Font.Charset = RUSSIAN_CHARSET
+    Style.Font.Color = clWindowText
+    Style.Font.Height = -19
+    Style.Font.Name = 'Calibri'
+    Style.Font.Style = [fsBold]
+    Style.IsFontAssigned = True
+    TabOrder = 4
+    Width = 353
+  end
+  object teDescription: TcxTextEdit
+    Left = 16
+    Top = 88
+    ParentFont = False
+    Style.Font.Charset = RUSSIAN_CHARSET
+    Style.Font.Color = clWindowText
+    Style.Font.Height = -19
+    Style.Font.Name = 'Calibri'
+    Style.Font.Style = [fsBold]
+    Style.IsFontAssigned = True
+    TabOrder = 5
+    Width = 353
+  end
+  object chEnabled: TcxCheckBox
+    Left = 16
+    Top = 123
+    Caption = 'Active limit (for everyone users)'
+    ParentFont = False
+    Properties.NullStyle = nssInactive
+    Properties.ValueChecked = '1'
+    Properties.ValueUnchecked = '0'
+    State = cbsGrayed
+    Style.Font.Charset = RUSSIAN_CHARSET
+    Style.Font.Color = clWindowText
+    Style.Font.Height = -19
+    Style.Font.Name = 'Calibri'
+    Style.Font.Style = [fsBold]
+    Style.IsFontAssigned = True
     TabOrder = 6
-    OnClick = Button2Click
+    Transparent = True
+    Width = 353
   end
 end

@@ -11,19 +11,21 @@ uses
 type
   TED_Blacklist = class(TForm)
     cxLabel5: TcxLabel;
-    cxDBTextEdit1: TcxDBTextEdit;
     cxLabel1: TcxLabel;
-    cxDBTextEdit2: TcxDBTextEdit;
-    cxCheckBox1: TcxCheckBox;
-    Button1: TButton;
-    Button2: TButton;
-    procedure Button2Click(Sender: TObject);
-    procedure Button1Click(Sender: TObject);
+    btnCancel: TButton;
+    btnSave: TButton;
+    teURL: TcxTextEdit;
+    teDescription: TcxTextEdit;
+    chEnabled: TcxCheckBox;
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnCancelClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
   private
-    { Private declarations }
+    procedure ClearControls();
   public
-    { Public declarations }
+    IsEdit: boolean;
   end;
 
 var
@@ -31,29 +33,57 @@ var
 
 implementation
 
-uses base;
+uses Main, blacklist, ObjectList, Foundation;
 
 {$R *.dfm}
 
-procedure TED_Blacklist.Button1Click(Sender: TObject);
+procedure TED_Blacklist.btnCancelClick(Sender: TObject);
 begin
-  Close;
+  close;
 end;
 
-procedure TED_Blacklist.Button2Click(Sender: TObject);
+procedure TED_Blacklist.btnSaveClick(Sender: TObject);
+var
+  query: string;
 begin
-  if cxCheckBox1.Checked then
-    Bases.cdsBLACKLIST.FieldByName('ACTIVE').Value := 1
+  if (IsEdit) then
+    query := 'UPDATE ' + TABLE_NAME_BLACKLIST + ' SET ' + FIELD_NAME_URL + ' = '
+      + QuotedStr(teURL.Text) + ', ' + FIELD_NAME_DESCRIPTION + ' = ' +
+      QuotedStr(teDescription.Text) + ', ' + FIELD_NAME_ENABLED + ' = ' +
+      to_s(chEnabled.Checked) + ' WHERE ' + FIELD_NAME_C_BLACKLIST + ' = ' +
+      to_s(MainForm.blacklist.DataSet.FieldByName(FIELD_NAME_C_BLACKLIST)
+      .AsInteger)
   else
-    Bases.cdsBLACKLIST.FieldByName('ACTIVE').Value := 0;
-  Bases.cdsBLACKLIST.Post;
-  Bases.cdsBLACKLIST.ApplyUpdates(-1);
-  Close;
+    query := 'INSERT INTO ' + TABLE_NAME_BLACKLIST + ' (' + FIELD_NAME_URL +
+      ', ' + FIELD_NAME_DESCRIPTION + ', ' + FIELD_NAME_ENABLED + ') VALUES (' +
+      QuotedStr(teURL.Text) + ',' + QuotedStr(teDescription.Text) + ',' +
+      to_s(chEnabled.Checked) + ')';
+
+  MainForm.Base.ExecSQL(Ansistring(query));
+  MainForm.SetView(ivBlackList, true);
+  close;
+end;
+
+procedure TED_Blacklist.ClearControls;
+begin
+  teURL.Clear;
+  teDescription.Clear;
+  chEnabled.Checked := false;
 end;
 
 procedure TED_Blacklist.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  Bases.cdsBLACKLIST.Cancel;
+  ClearControls;
+end;
+
+procedure TED_Blacklist.FormCreate(Sender: TObject);
+begin
+  ClearControls;
+end;
+
+procedure TED_Blacklist.FormShow(Sender: TObject);
+begin
+  teURL.SetFocus;
 end;
 
 end.

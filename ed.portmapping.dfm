@@ -15,6 +15,8 @@ object ED_PortMapping: TED_PortMapping
   Position = poDesktopCenter
   Scaled = False
   OnClose = FormClose
+  OnCreate = FormCreate
+  OnShow = FormShow
   PixelsPerInch = 96
   TextHeight = 13
   object cxLabel5: TcxLabel
@@ -30,21 +32,6 @@ object ED_PortMapping: TED_PortMapping
     Style.IsFontAssigned = True
     Transparent = True
   end
-  object cxDBTextEdit1: TcxDBTextEdit
-    Left = 16
-    Top = 32
-    DataBinding.DataField = 'LOCALPORT'
-    DataBinding.DataSource = Bases.dsPORTFORWARDING
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    TabOrder = 0
-    Width = 241
-  end
   object cxLabel1: TcxLabel
     Left = 16
     Top = 64
@@ -57,21 +44,6 @@ object ED_PortMapping: TED_PortMapping
     Style.Font.Style = [fsBold]
     Style.IsFontAssigned = True
     Transparent = True
-  end
-  object cxDBTextEdit2: TcxDBTextEdit
-    Left = 16
-    Top = 88
-    DataBinding.DataField = 'REMOTEIP'
-    DataBinding.DataSource = Bases.dsPORTFORWARDING
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    TabOrder = 2
-    Width = 241
   end
   object cxLabel2: TcxLabel
     Left = 272
@@ -86,21 +58,6 @@ object ED_PortMapping: TED_PortMapping
     Style.IsFontAssigned = True
     Transparent = True
   end
-  object cxDBTextEdit3: TcxDBTextEdit
-    Left = 272
-    Top = 88
-    DataBinding.DataField = 'DESCRIPTION'
-    DataBinding.DataSource = Bases.dsPORTFORWARDING
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    TabOrder = 3
-    Width = 241
-  end
   object cxLabel7: TcxLabel
     Left = 272
     Top = 8
@@ -114,22 +71,7 @@ object ED_PortMapping: TED_PortMapping
     Style.IsFontAssigned = True
     Transparent = True
   end
-  object cxDBTextEdit4: TcxDBTextEdit
-    Left = 272
-    Top = 32
-    DataBinding.DataField = 'REMOTEPORT'
-    DataBinding.DataSource = Bases.dsPORTFORWARDING
-    ParentFont = False
-    Style.Font.Charset = RUSSIAN_CHARSET
-    Style.Font.Color = clWindowText
-    Style.Font.Height = -19
-    Style.Font.Name = 'Calibri'
-    Style.Font.Style = [fsBold]
-    Style.IsFontAssigned = True
-    TabOrder = 1
-    Width = 241
-  end
-  object cxCheckBox1: TcxCheckBox
+  object chEnabled: TcxCheckBox
     Left = 16
     Top = 123
     Caption = 'Active'
@@ -140,28 +82,13 @@ object ED_PortMapping: TED_PortMapping
     Style.Font.Name = 'Calibri'
     Style.Font.Style = [fsBold]
     Style.IsFontAssigned = True
-    TabOrder = 8
+    TabOrder = 4
     Transparent = True
     Width = 97
   end
-  object Button1: TButton
-    Left = 160
-    Top = 148
-    Width = 169
-    Height = 29
-    Caption = 'Cancel'
-    Font.Charset = RUSSIAN_CHARSET
-    Font.Color = clWindowText
-    Font.Height = -19
-    Font.Name = 'Calibri'
-    Font.Style = [fsBold]
-    ParentFont = False
-    TabOrder = 9
-    OnClick = Button1Click
-  end
-  object Button2: TButton
-    Left = 344
-    Top = 148
+  object btnSave: TButton
+    Left = 164
+    Top = 153
     Width = 169
     Height = 29
     Caption = 'Save'
@@ -171,7 +98,75 @@ object ED_PortMapping: TED_PortMapping
     Font.Name = 'Calibri'
     Font.Style = [fsBold]
     ParentFont = False
+    TabOrder = 5
+    OnClick = btnSaveClick
+  end
+  object btnCancel: TButton
+    Left = 344
+    Top = 153
+    Width = 169
+    Height = 29
+    Caption = 'Cancel'
+    Font.Charset = RUSSIAN_CHARSET
+    Font.Color = clWindowText
+    Font.Height = -19
+    Font.Name = 'Calibri'
+    Font.Style = [fsBold]
+    ParentFont = False
+    TabOrder = 6
+    OnClick = btnCancelClick
+  end
+  object teLocalPort: TcxTextEdit
+    Left = 16
+    Top = 32
+    ParentFont = False
+    Style.Font.Charset = RUSSIAN_CHARSET
+    Style.Font.Color = clWindowText
+    Style.Font.Height = -19
+    Style.Font.Name = 'Calibri'
+    Style.Font.Style = []
+    Style.TextStyle = [fsBold]
+    Style.IsFontAssigned = True
+    TabOrder = 7
+    Width = 241
+  end
+  object teRemotePort: TcxTextEdit
+    Left = 272
+    Top = 32
+    ParentFont = False
+    Style.Font.Charset = RUSSIAN_CHARSET
+    Style.Font.Color = clWindowText
+    Style.Font.Height = -19
+    Style.Font.Name = 'Calibri'
+    Style.Font.Style = [fsBold]
+    Style.IsFontAssigned = True
+    TabOrder = 8
+    Width = 241
+  end
+  object teRemoteIP: TcxTextEdit
+    Left = 16
+    Top = 88
+    ParentFont = False
+    Style.Font.Charset = RUSSIAN_CHARSET
+    Style.Font.Color = clWindowText
+    Style.Font.Height = -19
+    Style.Font.Name = 'Calibri'
+    Style.Font.Style = [fsBold]
+    Style.IsFontAssigned = True
+    TabOrder = 9
+    Width = 241
+  end
+  object teDescription: TcxTextEdit
+    Left = 272
+    Top = 88
+    ParentFont = False
+    Style.Font.Charset = RUSSIAN_CHARSET
+    Style.Font.Color = clWindowText
+    Style.Font.Height = -19
+    Style.Font.Name = 'Calibri'
+    Style.Font.Style = [fsBold]
+    Style.IsFontAssigned = True
     TabOrder = 10
-    OnClick = Button2Click
+    Width = 241
   end
 end

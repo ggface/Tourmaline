@@ -1,17 +1,20 @@
 unit main;
-
+
 interface
 
 uses
-  IdContext, Windows, Messages, SysUtils, Variants, Classes, Graphics, Controls,
+  IdContext, Windows, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls,
   Forms, Dialogs, cxGraphics, dxSkinsCore, dxSkinDarkRoom,
   dxSkinsdxStatusBarPainter, cxStyles, dxSkinscxPCPainter, cxCustomData,
-  cxFilter, cxData, cxDataStorage, cxEdit, DB, cxDBData, dxSkinsdxBarPainter,
+  cxFilter, cxData, cxDataStorage, cxEdit, DB, cxDBData,
+  dxSkinsdxBarPainter,
   cxGridCustomPopupMenu, cxGridPopupMenu, dxBar, cxClasses,
   cxLookAndFeels, dxSkinsForm, cxGridCustomTableView, cxGridTableView,
   cxGridDBTableView, cxControls, cxGridCustomView, cxGrid, cxGridLevel,
-  dxStatusBar, glRegistry, ExtCtrls, Menus, CoolTrayIcon, cxLookAndFeelPainters,
-  glTools;
+  dxStatusBar, glRegistry, ExtCtrls, Menus, CoolTrayIcon,
+  cxLookAndFeelPainters, glTools, SQLite3, SQLiteTable3,
+  Blacklist, UserList, MapList, ObjectList, Foundation;
 
 type
   TInsideView = (ivUser, ivBlackList, ivPortMapping, ivNone);
@@ -19,18 +22,15 @@ type
   TMainForm = class(TForm)
     GVR: TcxGridViewRepository;
     GV_Users: TcxGridDBTableView;
-    GV_UsersColumn1: TcxGridDBColumn;
-    GV_UsersColumn2: TcxGridDBColumn;
-    GV_UsersColumn3: TcxGridDBColumn;
-    GV_UsersColumn4: TcxGridDBColumn;
+    gvcUsersDisplayName: TcxGridDBColumn;
     dxBarManager1: TdxBarManager;
     dxBarManager1Bar1: TdxBar;
     dxBarSubItem1: TdxBarSubItem;
     dxBarButton1: TdxBarButton;
     dxBarButton2: TdxBarButton;
     dxStatusBar1: TdxStatusBar;
-    GV_UsersColumn5: TcxGridDBColumn;
-    GV_UsersColumn6: TcxGridDBColumn;
+    gvcUsersIP: TcxGridDBColumn;
+    gvcUsersStatus: TcxGridDBColumn;
     cxGrid1Level1: TcxGridLevel;
     cxGrid1: TcxGrid;
     dxBarButton4: TdxBarButton;
@@ -45,9 +45,9 @@ type
     dxBarButton8: TdxBarButton;
     dxBarButton9: TdxBarButton;
     GV_BlackList: TcxGridDBTableView;
-    GV_BlackListColumn1: TcxGridDBColumn;
-    GV_BlackListColumn2: TcxGridDBColumn;
-    GV_BlackListColumn3: TcxGridDBColumn;
+    gvcBlacklistStatus: TcxGridDBColumn;
+    gvcBlacklistURL: TcxGridDBColumn;
+    gvcBlacklistDescription: TcxGridDBColumn;
     dxBarSubItem4: TdxBarSubItem;
     dxBarButton10: TdxBarButton;
     dxBarButton11: TdxBarButton;
@@ -82,6 +82,11 @@ type
     CoolTrayIcon1: TCoolTrayIcon;
     Skin: TdxSkinController;
     glTools1: TglTools;
+    OpenDialog1: TOpenDialog;
+    dsUsers: TDataSource;
+    dsMaplist: TDataSource;
+    dsBlackList: TDataSource;
+    gvcUsersDescription: TcxGridDBColumn;
     procedure dxBarButton4Click(Sender: TObject);
     procedure dxBarButton5Click(Sender: TObject);
     procedure dxBarButton7Click(Sender: TObject);
@@ -119,18 +124,33 @@ type
     procedure CoolTrayIcon1DblClick(Sender: TObject);
     procedure CoolTrayIcon1MinimizeToTray(Sender: TObject);
     procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
-    procedure GV_BlackListColumn1GetDisplayText(Sender: TcxCustomGridTableItem;
+    procedure gvcBlacklistStatusGetDisplayText(Sender: TcxCustomGridTableItem;
       ARecord: TcxCustomGridRecord; var AText: string);
-    procedure GV_UsersColumn6GetDisplayText(Sender: TcxCustomGridTableItem;
+    procedure gvcUsersStatusGetDisplayText(Sender: TcxCustomGridTableItem;
       ARecord: TcxCustomGridRecord; var AText: string);
-    procedure GV_PortForwardingColumn1GetDisplayText(
-      Sender: TcxCustomGridTableItem; ARecord: TcxCustomGridRecord;
+    procedure GV_PortForwardingColumn1GetDisplayText
+      (Sender: TcxCustomGridTableItem; ARecord: TcxCustomGridRecord;
       var AText: string);
+    procedure FormDestroy(Sender: TObject);
   private
+    FBase: TSQLiteDatabase;
+    FUserList: TUserList;
+    FBlackList: TBlackList;
+    FMapList: TMapList;
     procedure WMEndSession(var Msg: TWMEndSession); message WM_ENDSESSION;
     procedure WMQueryEndSession(var Msg: TMessage); message WM_QUERYENDSESSION;
   public
-    procedure SetView(ViewState: TInsideView);
+    property Base: TSQLiteDatabase read FBase write FBase;
+    property UserList: TUserList read FUserList write FUserList;
+    property Blacklist: TBlackList read FBlackList write FBlackList;
+    property MapList: TMapList read FMapList write FMapList;
+
+    procedure SetView(ViewState: TInsideView; Force: Boolean);
+    procedure CreateDatabase(Filename: string);
+    procedure MakeLink();
+    procedure FillUserList();
+    procedure FillBlackList();
+    procedure FillMapList();
   end;
 
 var
@@ -142,7 +162,7 @@ var
 
 implementation
 
-uses base, ed.user, ed.blacklist, ed.portmapping, about;
+uses Base, ed.user, ed.Blacklist, ed.portmapping, about;
 
 {$R *.dfm}
 
@@ -156,26 +176,56 @@ begin
   CoolTrayIcon1.HideTaskbarIcon;
 end;
 
+procedure TMainForm.CreateDatabase(Filename: string);
+begin
+  FBase := TSQLiteDatabase.Create(Filename);
+  try
+    if not FBase.TableExists(TABLE_NAME_USERS) then
+      FBase.ExecSQL('CREATE TABLE ' + TABLE_NAME_USERS + ' (' +
+        FIELD_NAME_C_USER + ' INTEGER PRIMARY KEY AUTOINCREMENT,' +
+        FIELD_NAME_N_USER + ' TEXT,' + FIELD_NAME_IP_ADRESS + ' TEXT,' +
+        FIELD_NAME_DESCRIPTION + ' TEXT,' + FIELD_NAME_ENABLED + ' INTEGER)');
+    if not FBase.TableExists(TABLE_NAME_BLACKLIST) then
+      FBase.ExecSQL('CREATE TABLE ' + TABLE_NAME_BLACKLIST + ' (' +
+        FIELD_NAME_C_BLACKLIST + ' INTEGER PRIMARY KEY AUTOINCREMENT,' +
+        FIELD_NAME_URL + ' TEXT,' + FIELD_NAME_DESCRIPTION + ' TEXT,' +
+        FIELD_NAME_ENABLED + ' INTEGER)');
+    if not FBase.TableExists(TABLE_NAME_MAPLIST) then
+      FBase.ExecSQL('CREATE TABLE ' + TABLE_NAME_MAPLIST + ' (' +
+        FIELD_NAME_C_MAPLIST + ' INTEGER PRIMARY KEY AUTOINCREMENT,' +
+        FIELD_NAME_LOCAL_PORT + ' INTEGER,' + FIELD_NAME_REMOTE_PORT +
+        ' INTEGER,' + FIELD_NAME_REMOTEIP + ' TEXT,' + FIELD_NAME_DESCRIPTION +
+        ' TEXT,' + FIELD_NAME_ENABLED + ' INTEGER)');
+  except
+    MessageBox(0, ERROR_CREATE_SQLITE_TABLE, ERROR_STR, MB_OK + MB_ICONERROR);
+    Halt;
+  end;
+end;
+
 procedure TMainForm.dxBarButton10Click(Sender: TObject);
 begin
-  Bases.cdsBLACKLIST.Append;
+  ED_Blacklist.IsEdit := false;
   ED_Blacklist.ShowModal;
 end;
 
 procedure TMainForm.dxBarButton11Click(Sender: TObject);
 begin
-  Bases.cdsBLACKLIST.Edit;
-  if Bases.cdsBLACKLIST.FieldByName('ACTIVE').AsInteger = 0 then
-    ED_Blacklist.cxCheckBox1.Checked := false
-  else
-    ED_Blacklist.cxCheckBox1.Checked := true;
+  ED_Blacklist.IsEdit := true;
+  ED_Blacklist.teURL.Text := Blacklist.DataSet.FieldByName
+    (FIELD_NAME_URL).AsString;
+  ED_Blacklist.teDescription.Text := Blacklist.DataSet.FieldByName
+    (FIELD_NAME_DESCRIPTION).AsString;
+  ED_Blacklist.chEnabled.Checked :=
+    to_b(Blacklist.DataSet.FieldByName(FIELD_NAME_ENABLED).AsInteger);
   ED_Blacklist.ShowModal;
 end;
 
 procedure TMainForm.dxBarButton12Click(Sender: TObject);
 begin
-  Bases.cdsBLACKLIST.Delete;
-  Bases.cdsBLACKLIST.ApplyUpdates(-1);
+  FBase.ExecSQL(Ansistring('DELETE FROM ' + TABLE_NAME_BLACKLIST + ' WHERE ' +
+    FIELD_NAME_C_BLACKLIST + ' = ' + IntToStr(Blacklist.DataSet.FieldByName
+    (FIELD_NAME_C_BLACKLIST).AsInteger)));
+  Blacklist.DataSet.Delete;
 end;
 
 procedure TMainForm.dxBarButton14Click(Sender: TObject);
@@ -185,7 +235,7 @@ end;
 
 procedure TMainForm.dxBarButton15Click(Sender: TObject);
 begin
-  SetView(ivPortMapping);
+  SetView(ivPortMapping, false);
 end;
 
 procedure TMainForm.dxBarButton16Click(Sender: TObject);
@@ -197,24 +247,32 @@ end;
 
 procedure TMainForm.dxBarButton17Click(Sender: TObject);
 begin
-  Bases.cdsPORTFORWARDING.Append;
+  ED_PortMapping.IsEdit := false;
   ED_PortMapping.ShowModal;
 end;
 
 procedure TMainForm.dxBarButton18Click(Sender: TObject);
 begin
-  Bases.cdsPORTFORWARDING.Edit;
-  if Bases.cdsPORTFORWARDING.FieldByName('ACTIVE').AsInteger = 0 then
-    ED_PortMapping.cxCheckBox1.Checked := false
-  else
-    ED_PortMapping.cxCheckBox1.Checked := true;
+  ED_PortMapping.IsEdit := true;
+  ED_PortMapping.teLocalPort.Text := MapList.DataSet.FieldByName
+    (FIELD_NAME_LOCAL_PORT).AsString;
+  ED_PortMapping.teRemotePort.Text := MapList.DataSet.FieldByName
+    (FIELD_NAME_REMOTE_PORT).AsString;
+      ED_PortMapping.teRemoteIP.Text := MapList.DataSet.FieldByName
+    (FIELD_NAME_REMOTEIP).AsString;
+  ED_PortMapping.teDescription.Text := MapList.DataSet.FieldByName
+    (FIELD_NAME_DESCRIPTION).AsString;
+  ED_PortMapping.chEnabled.Checked :=
+    to_b(MapList.DataSet.FieldByName(FIELD_NAME_ENABLED).AsInteger);
   ED_PortMapping.ShowModal;
 end;
 
 procedure TMainForm.dxBarButton19Click(Sender: TObject);
 begin
-  Bases.cdsPORTFORWARDING.Delete;
-  Bases.cdsPORTFORWARDING.ApplyUpdates(-1);
+  FBase.ExecSQL(Ansistring('DELETE FROM ' + TABLE_NAME_MAPLIST + ' WHERE ' +
+    FIELD_NAME_C_MAPLIST + ' = ' + IntToStr(MapList.DataSet.FieldByName
+    (FIELD_NAME_C_MAPLIST).AsInteger)));
+  MapList.DataSet.Delete;
 end;
 
 procedure TMainForm.dxBarButton1Click(Sender: TObject);
@@ -249,29 +307,35 @@ end;
 
 procedure TMainForm.dxBarButton4Click(Sender: TObject);
 begin
-  SetView(ivUser);
+  SetView(ivUser, false);
 end;
 
 procedure TMainForm.dxBarButton5Click(Sender: TObject);
 begin
-  Bases.cdsUSERS.Edit;
-  if Bases.cdsUSERS.FieldByName('ACTIVE').AsInteger = 0 then
-    ED_User.cxCheckBox1.Checked := false
-  else
-    ED_User.cxCheckBox1.Checked := true;
+  ED_User.IsEdit := true;
+  ED_User.teDisplayName.Text := UserList.DataSet.FieldByName
+    (FIELD_NAME_N_USER).AsString;
+  ED_User.teIP.Text := UserList.DataSet.FieldByName
+    (FIELD_NAME_IP_ADRESS).AsString;
+  ED_User.teDescription.Text := UserList.DataSet.FieldByName
+    (FIELD_NAME_DESCRIPTION).AsString;
+  ED_User.chEnabled.Checked :=
+    to_b(UserList.DataSet.FieldByName(FIELD_NAME_ENABLED).AsInteger);
   ED_User.ShowModal;
 end;
 
 procedure TMainForm.dxBarButton6Click(Sender: TObject);
 begin
-  Bases.cdsUSERS.Append;
+  ED_User.IsEdit := false;
   ED_User.ShowModal;
 end;
 
 procedure TMainForm.dxBarButton7Click(Sender: TObject);
 begin
-  Bases.cdsUSERS.Delete;
-  Bases.cdsUSERS.ApplyUpdates(-1);
+  FBase.ExecSQL(Ansistring('DELETE FROM ' + TABLE_NAME_USERS + ' WHERE ' +
+    FIELD_NAME_C_USER + ' = ' + IntToStr(UserList.DataSet.FieldByName
+    (FIELD_NAME_C_USER).AsInteger)));
+  UserList.DataSet.Delete;
 end;
 
 procedure TMainForm.dxBarButton8Click(Sender: TObject);
@@ -281,13 +345,140 @@ end;
 
 procedure TMainForm.dxBarButton9Click(Sender: TObject);
 begin
-  SetView(ivBlackList);
+  SetView(ivBlackList, false);
 end;
 
 procedure TMainForm.Exit1Click(Sender: TObject);
 begin
   bForceClose := true;
   Close;
+end;
+
+procedure TMainForm.FillBlackList;
+var
+  SQLite_table: TSQLiteTable;
+begin
+  SQLite_table := TSQLiteTable.Create(FBase, 'SELECT ' + FIELD_NAME_C_BLACKLIST
+    + ', ' + FIELD_NAME_URL + ', ' + FIELD_NAME_DESCRIPTION + ', ' +
+    FIELD_NAME_ENABLED + ' FROM ' + TABLE_NAME_BLACKLIST);
+
+  Blacklist.DataSet.DisableControls;
+  Blacklist.Clear;
+
+  while not SQLite_table.Eof do
+  begin
+    Blacklist.DataSet.Append;
+
+    Blacklist.DataSet.FieldByName(FIELD_NAME_C_BLACKLIST).value :=
+      SQLite_table.FieldAsInteger(SQLite_table.FieldIndex
+      [FIELD_NAME_C_BLACKLIST]);
+
+    Blacklist.DataSet.FieldByName(FIELD_NAME_URL).value :=
+      SQLite_table.FieldAsString(SQLite_table.FieldIndex[FIELD_NAME_URL]);
+
+    Blacklist.DataSet.FieldByName(FIELD_NAME_DESCRIPTION).value :=
+      SQLite_table.FieldAsString(SQLite_table.FieldIndex
+      [FIELD_NAME_DESCRIPTION]);
+
+    Blacklist.DataSet.FieldByName(FIELD_NAME_ENABLED).value :=
+      SQLite_table.FieldAsInteger(SQLite_table.FieldIndex[FIELD_NAME_ENABLED]);
+
+    Blacklist.DataSet.Post;
+
+    SQLite_table.Next;
+  end;
+
+  Blacklist.DataSet.EnableControls;
+  Blacklist.DataSet.First;
+end;
+
+procedure TMainForm.FillMapList;
+var
+  SQLite_table: TSQLiteTable;
+begin
+  SQLite_table := TSQLiteTable.Create(FBase, 'SELECT ' + FIELD_NAME_C_MAPLIST +
+    ', ' + FIELD_NAME_LOCAL_PORT + ', ' + FIELD_NAME_REMOTE_PORT + ', ' +
+    FIELD_NAME_REMOTEIP + ', ' + FIELD_NAME_DESCRIPTION + ', ' +
+    FIELD_NAME_ENABLED + ' FROM ' + TABLE_NAME_MAPLIST);
+
+  MapList.DataSet.DisableControls;
+  MapList.Clear;
+
+  while not SQLite_table.Eof do
+  begin
+    MapList.DataSet.Append;
+
+    MapList.DataSet.FieldByName(FIELD_NAME_C_MAPLIST).value :=
+      SQLite_table.FieldAsInteger(SQLite_table.FieldIndex
+      [FIELD_NAME_C_MAPLIST]);
+
+    MapList.DataSet.FieldByName(FIELD_NAME_LOCAL_PORT).value :=
+      SQLite_table.FieldAsInteger(SQLite_table.FieldIndex
+      [FIELD_NAME_LOCAL_PORT]);
+
+    MapList.DataSet.FieldByName(FIELD_NAME_REMOTE_PORT).value :=
+      SQLite_table.FieldAsInteger(SQLite_table.FieldIndex
+      [FIELD_NAME_REMOTE_PORT]);
+
+    MapList.DataSet.FieldByName(FIELD_NAME_REMOTEIP).value :=
+      SQLite_table.FieldAsString(SQLite_table.FieldIndex[FIELD_NAME_REMOTEIP]);
+
+    MapList.DataSet.FieldByName(FIELD_NAME_DESCRIPTION).value :=
+      SQLite_table.FieldAsString(SQLite_table.FieldIndex
+      [FIELD_NAME_DESCRIPTION]);
+
+    MapList.DataSet.FieldByName(FIELD_NAME_ENABLED).value :=
+      SQLite_table.FieldAsInteger(SQLite_table.FieldIndex[FIELD_NAME_ENABLED]);
+
+    MapList.DataSet.Post;
+
+    SQLite_table.Next;
+  end;
+
+  MapList.DataSet.EnableControls;
+  MapList.DataSet.First;
+end;
+
+procedure TMainForm.FillUserList;
+var
+  SQLite_table: TSQLiteTable;
+  query: string;
+begin
+  query := 'SELECT ' + FIELD_NAME_C_USER + ', ' + FIELD_NAME_N_USER + ', ' +
+    FIELD_NAME_IP_ADRESS + ', ' + FIELD_NAME_DESCRIPTION + ', ' +
+    FIELD_NAME_ENABLED + ' FROM ' + TABLE_NAME_USERS;
+  SQLite_table := TSQLiteTable.Create(FBase, Ansistring(query));
+
+  UserList.DataSet.DisableControls;
+  UserList.Clear;
+
+  while not SQLite_table.Eof do
+  begin
+    UserList.DataSet.Append;
+
+    UserList.DataSet.FieldByName(FIELD_NAME_C_USER).value :=
+      SQLite_table.FieldAsInteger(SQLite_table.FieldIndex[FIELD_NAME_C_USER]);
+
+    UserList.DataSet.FieldByName(FIELD_NAME_N_USER).value :=
+      SQLite_table.FieldAsString(SQLite_table.FieldIndex[FIELD_NAME_N_USER]);
+
+    UserList.DataSet.FieldByName(FIELD_NAME_IP_ADRESS).value :=
+      SQLite_table.FieldAsString(SQLite_table.FieldIndex[FIELD_NAME_IP_ADRESS]);
+
+    UserList.DataSet.FieldByName(FIELD_NAME_DESCRIPTION).value :=
+      SQLite_table.FieldAsString(SQLite_table.FieldIndex
+      [FIELD_NAME_DESCRIPTION]);
+
+    UserList.DataSet.FieldByName(FIELD_NAME_ENABLED).value :=
+      SQLite_table.FieldAsInteger(SQLite_table.FieldIndex[FIELD_NAME_ENABLED]);
+
+    UserList.DataSet.Post;
+
+    SQLite_table.Next;
+  end;
+
+  UserList.DataSet.EnableControls;
+  UserList.DataSet.First;
 end;
 
 procedure TMainForm.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
@@ -309,11 +500,22 @@ begin
   CoolTrayIcon1.Icon := Application.Icon;
   CoolTrayIcon1.Behavior := bhWin95;
   CS := ivNone;
-  SetView(ivUser);
   Timer1Timer(self);
   MainForm.dxStatusBar1.Panels[0].Text := 'Port: ' +
     IntToStr(glRegistry1.LoadParam(HKEY_LOCAL_MACHINE, 'Port',
     varInteger).mValue);
+  Caption := 'Tourmaline ' + CURRENT_VERSION;
+  CreateDatabase(PP + DB_FILENAME);
+  UserList := TUserList.Create();
+  Blacklist := TBlackList.Create();
+  MapList := TMapList.Create();
+  MakeLink;
+  SetView(ivUser, false);
+end;
+
+procedure TMainForm.FormDestroy(Sender: TObject);
+begin
+  FBase.ExecSQL('VACUUM;');
 end;
 
 procedure TMainForm.GV_BlackListCellDblClick(Sender: TcxCustomGridTableView;
@@ -323,14 +525,14 @@ begin
   dxBarButton11Click(self);
 end;
 
-procedure TMainForm.GV_BlackListColumn1GetDisplayText
+procedure TMainForm.gvcBlacklistStatusGetDisplayText
   (Sender: TcxCustomGridTableItem; ARecord: TcxCustomGridRecord;
   var AText: string);
 begin
   if AText = '0' then
-    AText := 'Не активен'
+    AText := 'Disabled'
   else
-    AText := ' Активен';
+    AText := 'Enabled';
 end;
 
 procedure TMainForm.GV_PortForwardingCellDblClick
@@ -340,14 +542,14 @@ begin
   dxBarButton18Click(self);
 end;
 
-procedure TMainForm.GV_PortForwardingColumn1GetDisplayText(
-  Sender: TcxCustomGridTableItem; ARecord: TcxCustomGridRecord;
+procedure TMainForm.GV_PortForwardingColumn1GetDisplayText
+  (Sender: TcxCustomGridTableItem; ARecord: TcxCustomGridRecord;
   var AText: string);
 begin
   if AText = '0' then
-    AText := 'Не активен'
+    AText := 'Disabled'
   else
-    AText := ' Активен';
+    AText := 'Enabled';
 end;
 
 procedure TMainForm.GV_UsersCellDblClick(Sender: TcxCustomGridTableView;
@@ -357,14 +559,13 @@ begin
   dxBarButton5Click(self);
 end;
 
-procedure TMainForm.GV_UsersColumn6GetDisplayText(
-  Sender: TcxCustomGridTableItem; ARecord: TcxCustomGridRecord;
-  var AText: string);
+procedure TMainForm.gvcUsersStatusGetDisplayText(Sender: TcxCustomGridTableItem;
+  ARecord: TcxCustomGridRecord; var AText: string);
 begin
   if AText = '0' then
-    AText := 'Не активен'
+    AText := 'Disabled'
   else
-    AText := ' Активен';
+    AText := 'Enabled';
 end;
 
 procedure TMainForm.Hide1Click(Sender: TObject);
@@ -373,17 +574,25 @@ begin
   CoolTrayIcon1.HideMainForm;
 end;
 
+procedure TMainForm.MakeLink;
+begin
+  dsUsers.DataSet := UserList.DataSet;
+  dsBlackList.DataSet := Blacklist.DataSet;
+  dsMaplist.DataSet := MapList.DataSet;
+end;
+
 procedure TMainForm.Restore1Click(Sender: TObject);
 begin
   CoolTrayIcon1.ShowMainForm;
 end;
 
-procedure TMainForm.SetView(ViewState: TInsideView);
+procedure TMainForm.SetView;
 begin
   // Проверим а нужно ли блин перерисовывать,
   // если нужный ViewState уже активен
-  if CS = ViewState then
-    exit;
+  if not Force then
+    if CS = ViewState then
+      exit;
   // Запрещаем отрисовку формы
   LockWindowUpdate(MainForm.Handle);
   // Вырубаем все маркеры на редакторы, потом откроем выбранный
@@ -394,6 +603,7 @@ begin
   case ViewState of
     ivBlackList:
       begin
+        FillBlackList;
         CS := ivBlackList;
         cxGrid1Level1.GridView := GV_BlackList;
         dxStatusBar1.Panels[2].Text := 'ST.: BlackList';
@@ -401,6 +611,7 @@ begin
       end;
     ivPortMapping:
       begin
+        FillMapList;
         CS := ivPortMapping;
         cxGrid1Level1.GridView := GV_PortForwarding;
         dxStatusBar1.Panels[2].Text := 'ST.: Port Mapping';
@@ -408,6 +619,7 @@ begin
       end;
     ivUser:
       begin
+        FillUserList;
         CS := ivUser;
         cxGrid1Level1.GridView := GV_Users;
         dxStatusBar1.Panels[2].Text := 'ST.: Users';
@@ -460,3 +672,4 @@ begin
 end;
 
 end.
+

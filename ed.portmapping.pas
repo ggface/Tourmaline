@@ -11,23 +11,25 @@ uses
 type
   TED_PortMapping = class(TForm)
     cxLabel5: TcxLabel;
-    cxDBTextEdit1: TcxDBTextEdit;
     cxLabel1: TcxLabel;
-    cxDBTextEdit2: TcxDBTextEdit;
     cxLabel2: TcxLabel;
-    cxDBTextEdit3: TcxDBTextEdit;
     cxLabel7: TcxLabel;
-    cxDBTextEdit4: TcxDBTextEdit;
-    cxCheckBox1: TcxCheckBox;
-    Button1: TButton;
-    Button2: TButton;
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    chEnabled: TcxCheckBox;
+    btnSave: TButton;
+    btnCancel: TButton;
+    teLocalPort: TcxTextEdit;
+    teRemotePort: TcxTextEdit;
+    teRemoteIP: TcxTextEdit;
+    teDescription: TcxTextEdit;
+    procedure btnCancelClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormCreate(Sender: TObject);
+    procedure FormShow(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
   private
-    { Private declarations }
+    procedure ClearControls();
   public
-    { Public declarations }
+    IsEdit: boolean;
   end;
 
 var
@@ -35,29 +37,62 @@ var
 
 implementation
 
-uses base, main;
+uses Main, MapList, ObjectList, Foundation;
 
 {$R *.dfm}
 
-procedure TED_PortMapping.Button1Click(Sender: TObject);
+procedure TED_PortMapping.btnCancelClick(Sender: TObject);
 begin
-  Close;
+  close;
 end;
 
-procedure TED_PortMapping.Button2Click(Sender: TObject);
+procedure TED_PortMapping.btnSaveClick(Sender: TObject);
+var
+  query: string;
 begin
-  if cxCheckBox1.Checked then
-    Bases.cdsPORTFORWARDING.FieldByName('ACTIVE').Value := 1
+  if (IsEdit) then
+    query := 'UPDATE ' + TABLE_NAME_MAPLIST + ' SET ' + FIELD_NAME_LOCAL_PORT +
+      ' = ' + QuotedStr(teLocalPort.Text) + ', ' + FIELD_NAME_REMOTE_PORT +
+      ' = ' + QuotedStr(teRemotePort.Text) + ', ' + FIELD_NAME_REMOTEIP + ' = '
+      + QuotedStr(teRemoteIP.Text) + ', ' + FIELD_NAME_DESCRIPTION + ' = ' +
+      QuotedStr(teDescription.Text) + ', ' + FIELD_NAME_ENABLED + ' = ' +
+      to_s(chEnabled.Checked) + ' WHERE ' + FIELD_NAME_C_MAPLIST + ' = ' +
+      to_s(MainForm.MapList.DataSet.FieldByName(FIELD_NAME_C_MAPLIST).AsInteger)
   else
-    Bases.cdsPORTFORWARDING.FieldByName('ACTIVE').Value := 0;
-  Bases.cdsPORTFORWARDING.Post;
-  Bases.cdsPORTFORWARDING.ApplyUpdates(-1);
-  Close;
+    query := 'INSERT INTO ' + TABLE_NAME_MAPLIST + ' (' + FIELD_NAME_LOCAL_PORT
+      + ', ' + FIELD_NAME_REMOTE_PORT + ', ' + FIELD_NAME_REMOTEIP + ', ' +
+      FIELD_NAME_DESCRIPTION + ', ' + FIELD_NAME_ENABLED + ') VALUES (' +
+      QuotedStr(teLocalPort.Text) + ',' + QuotedStr(teRemotePort.Text) + ',' +
+      QuotedStr(teRemoteIP.Text) + ',' + QuotedStr(teDescription.Text) + ',' +
+      to_s(chEnabled.Checked) + ')';
+
+  MainForm.Base.ExecSQL(Ansistring(query));
+  MainForm.SetView(ivPortMapping, true);
+  close;
+end;
+
+procedure TED_PortMapping.ClearControls;
+begin
+  teLocalPort.Clear;
+  teRemotePort.Clear;
+  teRemoteIP.Clear;
+  teDescription.Clear;
+  chEnabled.Checked := false;
 end;
 
 procedure TED_PortMapping.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  Bases.cdsPORTFORWARDING.Cancel;
+  ClearControls();
+end;
+
+procedure TED_PortMapping.FormCreate(Sender: TObject);
+begin
+  ClearControls();
+end;
+
+procedure TED_PortMapping.FormShow(Sender: TObject);
+begin
+  teLocalPort.SetFocus;
 end;
 
 end.

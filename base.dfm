@@ -2,7 +2,7 @@ object Bases: TBases
   OldCreateOrder = False
   OnCreate = DataModuleCreate
   Height = 254
-  Width = 293
+  Width = 306
   object SQLConnection1: TSQLConnection
     DriverName = 'Datasnap'
     LoginPrompt = False
@@ -17,13 +17,11 @@ object Bases: TBases
         '.Data.DbxClientDriver,Version=15.0.0.0,Culture=neutral,PublicKey' +
         'Token=91d62ebb5b0d1b1b'
       'Filters={}')
-    Connected = True
     Left = 48
     Top = 8
   end
   object DSProviderConnection1: TDSProviderConnection
     ServerClassName = 'TTourmaline'
-    Connected = True
     SQLConnection = SQLConnection1
     Left = 200
     Top = 8

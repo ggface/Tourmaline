@@ -1,5 +1,5 @@
 unit ed.user;
-
+
 interface
 
 uses
@@ -11,25 +11,23 @@ uses
 type
   TED_User = class(TForm)
     cxLabel5: TcxLabel;
-    cxDBTextEdit1: TcxDBTextEdit;
-    cxLabel1: TcxLabel;
-    cxDBTextEdit2: TcxDBTextEdit;
     cxLabel2: TcxLabel;
-    cxDBTextEdit3: TcxDBTextEdit;
     cxLabel7: TcxLabel;
-    cxDBTextEdit4: TcxDBTextEdit;
-    cxLabel8: TcxLabel;
-    cxDBTextEdit5: TcxDBTextEdit;
-    cxCheckBox1: TcxCheckBox;
-    Button1: TButton;
-    Button2: TButton;
-    procedure Button1Click(Sender: TObject);
-    procedure Button2Click(Sender: TObject);
+    chEnabled: TcxCheckBox;
+    btnCancel: TButton;
+    btnSave: TButton;
+    teDisplayName: TcxTextEdit;
+    teIP: TcxTextEdit;
+    teDescription: TcxTextEdit;
+    procedure btnCancelClick(Sender: TObject);
+    procedure btnSaveClick(Sender: TObject);
+    procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure FormShow(Sender: TObject);
   private
-    { Private declarations }
+    procedure ClearControls();
   public
-    { Public declarations }
+    IsEdit: boolean;
   end;
 
 var
@@ -37,29 +35,60 @@ var
 
 implementation
 
-uses base;
+uses Main, UserList, ObjectList, Foundation;
 
 {$R *.dfm}
 
-procedure TED_User.Button1Click(Sender: TObject);
+procedure TED_User.btnCancelClick(Sender: TObject);
 begin
   close;
 end;
 
-procedure TED_User.Button2Click(Sender: TObject);
+procedure TED_User.btnSaveClick(Sender: TObject);
+var
+  query: string;
 begin
-  if cxCheckBox1.Checked then
-    Bases.cdsUSERS.FieldByName('ACTIVE').Value := 1
+  if (IsEdit) then
+    query := 'UPDATE ' + TABLE_NAME_USERS + ' SET ' + FIELD_NAME_N_USER + ' = '
+      + QuotedStr(teDisplayName.Text) + ', ' + FIELD_NAME_IP_ADRESS + ' = ' +
+      QuotedStr(teIP.Text) + ', ' + FIELD_NAME_DESCRIPTION + ' = ' +
+      QuotedStr(teDescription.Text) + ', ' + FIELD_NAME_ENABLED + ' = ' +
+      to_s(chEnabled.Checked) + ' WHERE ' + FIELD_NAME_C_USER + ' = ' +
+      to_s(MainForm.UserList.DataSet.FieldByName(FIELD_NAME_C_USER).AsInteger)
   else
-    Bases.cdsUSERS.FieldByName('ACTIVE').Value := 0;
-  Bases.cdsUSERS.Post;
-  Bases.cdsUSERS.ApplyUpdates(-1);
-  Close;
+    query := 'INSERT INTO ' + TABLE_NAME_USERS + ' (' + FIELD_NAME_N_USER + ', '
+      + FIELD_NAME_IP_ADRESS + ', ' + FIELD_NAME_DESCRIPTION + ', ' +
+      FIELD_NAME_ENABLED + ') VALUES (' + QuotedStr(teDisplayName.Text) + ',' +
+      QuotedStr(teIP.Text) + ',' + QuotedStr(teDescription.Text) + ',' +
+      to_s(chEnabled.Checked) + ')';
+
+  MainForm.Base.ExecSQL(Ansistring(query));
+  MainForm.SetView(ivUser, true);
+  close;
+end;
+
+procedure TED_User.ClearControls;
+begin
+  teDisplayName.Clear;
+  teIP.Clear;
+  teDescription.Clear;
+  chEnabled.Checked := false;
 end;
 
 procedure TED_User.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  Bases.cdsUSERS.Cancel;
+  ClearControls;
+end;
+
+procedure TED_User.FormCreate(Sender: TObject);
+begin
+  ClearControls;
+end;
+
+procedure TED_User.FormShow(Sender: TObject);
+begin
+  teDisplayName.SetFocus;
 end;
 
 end.
+

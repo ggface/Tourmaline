@@ -4,6 +4,8 @@
 
 *.dcu
 __history/
+Debug/
+*.skincfg
 *.~*~
 *.local
 *.identcache
