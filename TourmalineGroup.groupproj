@@ -1,0 +1,48 @@
+﻿	<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+		<PropertyGroup>
+			<ProjectGuid>{9E2632E5-823F-4F98-80F6-F2CD05E15EE6}</ProjectGuid>
+		</PropertyGroup>
+		<ItemGroup>
+			<Projects Include="tl.dproj">
+				<Dependencies/>
+			</Projects>
+			<Projects Include="TourmalineService.dproj">
+				<Dependencies/>
+			</Projects>
+		</ItemGroup>
+		<ProjectExtensions>
+			<Borland.Personality>Default.Personality.12</Borland.Personality>
+			<Borland.ProjectType/>
+			<BorlandProject>
+				<Default.Personality/>
+			</BorlandProject>
+		</ProjectExtensions>
+		<Target Name="tl">
+			<MSBuild Projects="tl.dproj"/>
+		</Target>
+		<Target Name="tl:Clean">
+			<MSBuild Projects="tl.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="tl:Make">
+			<MSBuild Projects="tl.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="TourmalineService">
+			<MSBuild Projects="TourmalineService.dproj"/>
+		</Target>
+		<Target Name="TourmalineService:Clean">
+			<MSBuild Projects="TourmalineService.dproj" Targets="Clean"/>
+		</Target>
+		<Target Name="TourmalineService:Make">
+			<MSBuild Projects="TourmalineService.dproj" Targets="Make"/>
+		</Target>
+		<Target Name="Build">
+			<CallTarget Targets="tl;TourmalineService"/>
+		</Target>
+		<Target Name="Clean">
+			<CallTarget Targets="tl:Clean;TourmalineService:Clean"/>
+		</Target>
+		<Target Name="Make">
+			<CallTarget Targets="tl:Make;TourmalineService:Make"/>
+		</Target>
+		<Import Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')" Project="$(BDS)\Bin\CodeGear.Group.Targets"/>
+	</Project>
