@@ -15,14 +15,14 @@ const
   ERROR_STR = 'Error';
   ERROR_CREATE_SQLITE_TABLE = 'Error. Failed to create a table.';
 
-function to_s(value: integer): string; overload;
+function to_s(value: Integer): string; overload;
 function to_s(value: boolean): string; overload;
 
-function to_b(value: integer): boolean; overload;
+function to_b(value: Integer): boolean; overload;
 
 implementation
 
-function to_s(value: integer): string;
+function to_s(value: Integer): string;
 begin
   Result := IntToStr(value);
 end;
@@ -35,7 +35,7 @@ begin
     Result := '0';
 end;
 
-function to_b(value: integer): boolean; overload;
+function to_b(value: Integer): boolean; overload;
 begin
   if (value = 0) then
     Result := false

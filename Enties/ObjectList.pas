@@ -18,6 +18,8 @@ type
     destructor Destroy;
     procedure Clear();
 
+    function Contains(FieldName: string; value: variant): boolean;
+
     property DataSet: TMemTableEh read FTable write FTable;
     property OnCreatingTable: TNotifyEvent read FOnCreatingTable
       write FOnCreatingTable;
@@ -34,6 +36,11 @@ implementation
 procedure TObjectList.Clear;
 begin
   FTable.EmptyTable;
+end;
+
+function TObjectList.Contains(FieldName: string; value: variant): boolean;
+begin
+  Result := FTable.Locate(FieldName, value, []);
 end;
 
 constructor TObjectList.Create;

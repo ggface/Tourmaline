@@ -14,7 +14,7 @@ uses
   cxGridDBTableView, cxControls, cxGridCustomView, cxGrid, cxGridLevel,
   dxStatusBar, glRegistry, ExtCtrls, Menus, CoolTrayIcon,
   cxLookAndFeelPainters, glTools, SQLite3, SQLiteTable3,
-  Blacklist, UserList, MapList, ObjectList, Foundation;
+  Blacklist, UserList, MapList, ObjectList, Foundation, dxSkinsDefaultPainters;
 
 type
   TInsideView = (ivUser, ivBlackList, ivPortMapping, ivNone);
@@ -162,7 +162,7 @@ var
 
 implementation
 
-uses Base, ed.user, ed.Blacklist, ed.portmapping, about;
+uses ed.user, ed.Blacklist, ed.portmapping, about;
 
 {$R *.dfm}
 

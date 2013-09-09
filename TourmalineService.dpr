@@ -3,7 +3,12 @@ program TourmalineService;
 uses
   SvcMgr,
   ServerTourmaline in 'ServerTourmaline.pas' {Tourmaline: TDSServerModule},
-  ServerContainer in 'ServerContainer.pas' {ServerContainer1: TService};
+  ServerContainer in 'ServerContainer.pas' {ServerContainer1: TService},
+  BlackList in 'Enties\BlackList.pas',
+  MapList in 'Enties\MapList.pas',
+  ObjectList in 'Enties\ObjectList.pas',
+  UserList in 'Enties\UserList.pas',
+  Foundation in 'Foundation.pas';
 
 {$R *.RES}
 
