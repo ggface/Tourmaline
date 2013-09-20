@@ -3,7 +3,7 @@ program TourmalineService;
 uses
   SvcMgr,
   ServerTourmaline in 'ServerTourmaline.pas' {Tourmaline: TDSServerModule},
-  ServerContainer in 'ServerContainer.pas' {ServerContainer1: TService},
+  ServerContainer in 'ServerContainer.pas' {IcarusEmpireTourmaline: TService},
   BlackList in 'Enties\BlackList.pas',
   MapList in 'Enties\MapList.pas',
   ObjectList in 'Enties\ObjectList.pas',
@@ -29,7 +29,7 @@ begin
   //
   if not Application.DelayInitialize or Application.Installing then
     Application.Initialize;
-  Application.CreateForm(TServerContainer1, ServerContainer1);
-  Application.Run;
+  AApplication.CreateForm(TIcarusEmpireTourmaline, IcarusEmpireTourmaline);
+  pplication.Run;
 end.
 

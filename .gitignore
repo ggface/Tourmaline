@@ -5,6 +5,7 @@
 *.dcu
 __history/
 Debug/
+Release/
 *.skincfg
 *.~*~
 *.local

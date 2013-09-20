@@ -283,19 +283,19 @@ end;
 
 procedure TMainForm.dxBarButton20Click(Sender: TObject);
 begin
-  glTools1.Install('tourmaline', PP);
+  glTools1.Install('TourmalineService', PP);
   Timer1Timer(self);
 end;
 
 procedure TMainForm.dxBarButton21Click(Sender: TObject);
 begin
-  glTools1.Uninstall('tourmaline', PP);
+  glTools1.Uninstall('TourmalineService', PP);
   Timer1Timer(self);
 end;
 
 procedure TMainForm.dxBarButton22Click(Sender: TObject);
 begin
-  glTools1.FullRestart('TourmalineSrv', 'tourmaline', PP);
+  glTools1.FullRestart('TourmalineSrv', 'TourmalineService', PP);
   Timer1Timer(self);
 end;
 

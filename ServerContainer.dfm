@@ -1,4 +1,4 @@
-object ServerContainer1: TServerContainer1
+object IcarusEmpireTourmaline: TIcarusEmpireTourmaline
   OldCreateOrder = False
   DisplayName = 'Tourmaline'
   OnStart = ServiceStart
@@ -16,7 +16,7 @@ object ServerContainer1: TServerContainer1
     Server = DSServer1
     BufferKBSize = 32
     Filters = <>
-    KeepAliveEnablement = kaDefault
+    KeepAliveEnablement = kaDisabled
     Left = 96
     Top = 73
   end
